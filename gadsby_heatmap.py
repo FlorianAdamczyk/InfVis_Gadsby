@@ -4,7 +4,6 @@ import argparse
 from pathlib import Path
 
 from keyboard_heatmap import (
-    GRADIENT_PRESETS,
     QWERTY_LAYOUT,
     analyze_text,
     load_text,
@@ -17,15 +16,25 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Render a keyboard heatmap for a given text.")
     parser.add_argument("--input", required=True, help="Path to the input text file")
     parser.add_argument("--output-dir", default="output", help="Directory for generated assets")
-    parser.add_argument("--gradient", default="standard", choices=GRADIENT_PRESETS.keys(), help="Color gradient preset")
+    parser.add_argument(
+        "--cmap",
+        default="cividis",
+        help=(
+            "Matplotlib colormap name (e.g. cividis, plasma, viridis) or one of the presets: "
+            "standard, nightly, fanzy"
+        ),
+    )
     parser.add_argument(
         "--exclude",
         nargs="*",
-        default=[],
-        help="Characters to exclude from the count (default: none)",
+        default=None,
+        help="Characters to exclude in addition to the defaults (space is excluded by default)",
     )
     parser.add_argument(
-        "--limit", type=int, default=None, help="Optional maximum number of characters to read from the text"
+        "--limit",
+        type=int,
+        default=None,
+        help="Optional maximum number of characters to read from the text",
     )
     return parser.parse_args()
 
@@ -38,6 +47,7 @@ def main() -> None:
     text = load_text(args.input)
     if args.limit:
         text = text[: args.limit]
+    input_chars = len(text)
 
     analysis = analyze_text(text, QWERTY_LAYOUT, excludes=args.exclude)
 
@@ -45,7 +55,7 @@ def main() -> None:
     csv_path = output_dir / "keyboard_letter_counts.csv"
     unmapped_path = output_dir / "unmapped_characters.txt"
 
-    render_keyboard_heatmap(analysis, output_path=image_path, gradient=args.gradient)
+    render_keyboard_heatmap(analysis, output_path=image_path, gradient=args.cmap)
     export_counts_to_csv(csv_path, analysis)
 
     if analysis.unmapped_counts:
@@ -53,6 +63,7 @@ def main() -> None:
             for char, count in analysis.unmapped_counts.most_common():
                 fh.write(f"{char}\t{count}\n")
 
+    print(f"Processed {analysis.total_characters} mapped characters (input slice length: {input_chars}).")
     print(f"Saved heatmap to {image_path}")
     print(f"Saved CSV stats to {csv_path}")
     if analysis.unmapped_counts:

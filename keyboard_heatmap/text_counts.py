@@ -1,10 +1,10 @@
 """Text ingestion and counting utilities for the keyboard heatmap."""
 from __future__ import annotations
 
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Mapping, MutableMapping, Optional, Sequence, Tuple
+from typing import Iterable, List, Mapping, Optional, Sequence, Tuple
 
 LayoutType = Mapping[str, Sequence[Tuple[int, int]]]
 
@@ -46,7 +46,7 @@ class AnalysisResult:
         return rows
 
 
-DEFAULT_EXCLUDES: Sequence[str] = []
+DEFAULT_EXCLUDES: Sequence[str] = [" "]
 
 
 def analyze_text(
@@ -55,7 +55,9 @@ def analyze_text(
     *,
     excludes: Optional[Iterable[str]] = None,
 ) -> AnalysisResult:
-    excludes_set = set(excludes or DEFAULT_EXCLUDES)
+    excludes_set = set(DEFAULT_EXCLUDES)
+    if excludes:
+        excludes_set.update(excludes)
     char_counts: Counter = Counter()
     key_counts: Counter = Counter()
     unmapped_counts: Counter = Counter()

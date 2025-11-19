@@ -7,12 +7,13 @@ from .text_counts import (
     normalize_char,
 )
 from .render_keyboard import render_keyboard_heatmap
-from .gradients import GRADIENT_PRESETS
+from .gradients import GRADIENT_PRESETS, resolve_colormap
 
 __all__ = [
     "QWERTY_LAYOUT",
     "KEYBOXES",
     "GRADIENT_PRESETS",
+    "resolve_colormap",
     "normalize_char",
     "load_text",
     "analyze_text",

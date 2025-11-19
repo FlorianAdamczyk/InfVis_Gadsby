@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.colors import Normalize
 
-from .gradients import build_colormap
+from .gradients import resolve_colormap
 from .layout_qwerty import CANVAS_HEIGHT, CANVAS_WIDTH, KEYBOXES, iter_key_rects
 from .text_counts import AnalysisResult
 
@@ -21,7 +21,7 @@ def render_keyboard_heatmap(
     analysis: AnalysisResult,
     *,
     output_path: str | Path,
-    gradient: str = "standard",
+    gradient: str = "cividis",
     show_colorbar: bool = True,
     annotate_frequencies: bool = True,
     background_color: str = "#1b1b1f",
@@ -29,7 +29,7 @@ def render_keyboard_heatmap(
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    cmap = build_colormap(gradient)
+    cmap = resolve_colormap(gradient)
     rect_values: Dict[Tuple[float, float], int] = {}
     rect_labels: Dict[Tuple[float, float], str] = {}
 
@@ -44,9 +44,10 @@ def render_keyboard_heatmap(
 
     fig_height = DEFAULT_FIGURE_WIDTH * (CANVAS_HEIGHT / CANVAS_WIDTH)
     fig, ax = plt.subplots(figsize=(DEFAULT_FIGURE_WIDTH, fig_height), dpi=DEFAULT_DPI)
+    margin = 20
     ax.set_facecolor(background_color)
-    ax.set_xlim(0, CANVAS_WIDTH)
-    ax.set_ylim(CANVAS_HEIGHT, 0)
+    ax.set_xlim(-margin, CANVAS_WIDTH + margin)
+    ax.set_ylim(CANVAS_HEIGHT + margin, -margin)
     ax.axis("off")
 
     for rect in iter_key_rects():

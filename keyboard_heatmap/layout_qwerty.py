@@ -105,114 +105,31 @@ QWERTY_LAYOUT: Dict[str, List[Tuple[int, int]]] = {
 }
 
 
-# Keyboard rectangles are approximate but proportionally aligned to the 800x373 canvas.
-BASE_KEY_WIDTH = 62
-BASE_KEY_HEIGHT = 62
-KEY_GAP = 6
-
-_ROW_SPEC = [
-    {
-        "y": 70,
-        "start_x": 30,
-        "keys": [
-            {"labels": ["`", "~"]},
-            {"labels": ["1", "!"]},
-            {"labels": ["2", "@"]},
-            {"labels": ["3", "#"]},
-            {"labels": ["4", "$"]},
-            {"labels": ["5", "%"]},
-            {"labels": ["6", "^"]},
-            {"labels": ["7", "&"]},
-            {"labels": ["8", "*"]},
-            {"labels": ["9", "("]},
-            {"labels": ["0", ")"]},
-            {"labels": ["-", "_"]},
-            {"labels": ["=", "+"]},
-        ],
-    },
-    {
-        "y": 140,
-        "start_x": 60,
-        "keys": [
-            {"labels": ["Q"]},
-            {"labels": ["W"]},
-            {"labels": ["E"]},
-            {"labels": ["R"]},
-            {"labels": ["T"]},
-            {"labels": ["Y"]},
-            {"labels": ["U"]},
-            {"labels": ["I"]},
-            {"labels": ["O"]},
-            {"labels": ["P"]},
-            {"labels": ["[", "{"]},
-            {"labels": ["]", "}"]},
-            {"labels": ["\\", "|"]},
-        ],
-    },
-    {
-        "y": 210,
-        "start_x": 80,
-        "keys": [
-            {"labels": ["A"]},
-            {"labels": ["S"]},
-            {"labels": ["D"]},
-            {"labels": ["F"]},
-            {"labels": ["G"]},
-            {"labels": ["H"]},
-            {"labels": ["J"]},
-            {"labels": ["K"]},
-            {"labels": ["L"]},
-            {"labels": [";", ":"]},
-            {"labels": ["'", '"']},
-        ],
-    },
-    {
-        "y": 280,
-        "start_x": 110,
-        "keys": [
-            {"labels": ["Z"]},
-            {"labels": ["X"]},
-            {"labels": ["C"]},
-            {"labels": ["V"]},
-            {"labels": ["B"]},
-            {"labels": ["N"]},
-            {"labels": ["M"]},
-            {"labels": [",", "<"]},
-            {"labels": [".", ">"]},
-            {"labels": ["/", "?"]},
-        ],
-    },
-]
-
-# Space bar (centered)
-_SPACE_SPEC = {"y": 340, "start_x": 210, "width": 380, "labels": [" "]}
+DEFAULT_KEY_WIDTH = 55
+DEFAULT_KEY_HEIGHT = 55
+SPACE_WIDTH = 380
+SPACE_HEIGHT = 45
 
 
-KEYBOXES: Dict[str, KeyRect] = {}
+def _create_rect_for_label(label: str, center: Tuple[int, int]) -> KeyRect:
+    width = SPACE_WIDTH if label == " " else DEFAULT_KEY_WIDTH
+    height = SPACE_HEIGHT if label == " " else DEFAULT_KEY_HEIGHT
+    x = max(0.0, center[0] - width / 2.0)
+    y = max(0.0, center[1] - height / 2.0)
+    return KeyRect(label=label, x=x, y=y, width=width, height=height)
 
 
 def _build_keyboxes() -> Dict[str, KeyRect]:
     boxes: Dict[str, KeyRect] = {}
-    for row in _ROW_SPEC:
-        x = row["start_x"]
-        for key in row["keys"]:
-            width = key.get("width", BASE_KEY_WIDTH)
-            rect = KeyRect(label=key["labels"][0], x=x, y=row["y"], width=width, height=BASE_KEY_HEIGHT)
-            for label in key["labels"]:
-                boxes[label] = KeyRect(label=label, x=x, y=row["y"], width=width, height=BASE_KEY_HEIGHT)
-            x += width + KEY_GAP
-    space_rect = KeyRect(
-        label=" ",
-        x=_SPACE_SPEC["start_x"],
-        y=_SPACE_SPEC["y"],
-        width=_SPACE_SPEC["width"],
-        height=BASE_KEY_HEIGHT,
-    )
-    boxes[" "] = space_rect
+    for label, coords in QWERTY_LAYOUT.items():
+        if not coords:
+            continue
+        rect = _create_rect_for_label(label, coords[0])
+        boxes[label] = rect
     return boxes
 
 
-KEYBOXES.update(_build_keyboxes())
+KEYBOXES: Dict[str, KeyRect] = _build_keyboxes()
 
 
 def iter_key_rects() -> Iterable[KeyRect]:

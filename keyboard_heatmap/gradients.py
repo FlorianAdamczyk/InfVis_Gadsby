@@ -1,9 +1,10 @@
 """Gradient presets inspired by Patrick Wied's heatmap.js demo."""
 from __future__ import annotations
 
-from typing import Dict, Iterable, Mapping, Tuple
+from typing import Dict, Tuple
 
-from matplotlib.colors import LinearSegmentedColormap
+from matplotlib import colormaps
+from matplotlib.colors import Colormap, LinearSegmentedColormap
 
 ColorStop = Tuple[float, str]
 
@@ -34,9 +35,13 @@ GRADIENT_PRESETS: Dict[str, Tuple[Tuple[float, str], ...]] = {
 }
 
 
-def build_colormap(name: str) -> LinearSegmentedColormap:
+def resolve_colormap(name: str) -> Colormap:
+    """Return either a Matplotlib built-in colormap or one of the legacy presets."""
+    if name in colormaps:
+        return colormaps[name]
     stops = GRADIENT_PRESETS.get(name)
-    if not stops:
-        raise KeyError(f"Unknown gradient '{name}'. Available: {', '.join(GRADIENT_PRESETS)}")
-    return LinearSegmentedColormap.from_list(name, stops)
+    if stops:
+        return LinearSegmentedColormap.from_list(name, stops)
+    available = {"matplotlib": list(colormaps), "presets": list(GRADIENT_PRESETS)}
+    raise KeyError(f"Unknown colormap '{name}'. Available presets: {', '.join(GRADIENT_PRESETS)}.")
 
