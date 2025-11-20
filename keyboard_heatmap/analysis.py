@@ -27,10 +27,6 @@ class KeyboardAnalysis:
     def max_point_density(self) -> int:
         return max(self.point_counts.values(), default=0)
 
-    def relative_key_frequencies(self) -> dict[str, float]:
-        total = self.total_characters or 1
-        return {key: count / total for key, count in self.key_counts.items()}
-
 
 def load_text(path: str | Path) -> str:
     """Read a text file into memory using UTF-8."""
@@ -86,26 +82,3 @@ def analyze_text(
         point_counts=point_counts,
         unmapped_counts=unmapped,
     )
-
-
-def relative_point_difference(
-    base: KeyboardAnalysis,
-    comparison: KeyboardAnalysis,
-) -> CounterType[Coordinate]:
-    if base.layout != comparison.layout:
-        raise ValueError("Both analyses must share the same keyboard layout for comparison.")
-
-    freqs_base = base.relative_key_frequencies()
-    freqs_compare = comparison.relative_key_frequencies()
-    all_keys = set(freqs_base) | set(freqs_compare)
-    diff_points: CounterType[Coordinate] = Counter()
-
-    for key in all_keys:
-        diff = freqs_base.get(key, 0.0) - freqs_compare.get(key, 0.0)
-        coords = base.layout.get(key)
-        if not coords:
-            continue
-        for coord in coords:
-            diff_points[coord] += diff
-
-    return diff_points
