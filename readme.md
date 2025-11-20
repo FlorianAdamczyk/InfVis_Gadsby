@@ -71,8 +71,20 @@ python gadsby_heatmap.py --input "Gadsby_ Ernest Vincent Wright_1939.txt" --outp
 ```
 
 - `--cmap` akzeptiert jeden Matplotlib-Colormap-Namen oder die Presets `standard`, `nightly`, `fanzy`.
+- `--scale-type` steuert die Normalisierung: `sequential` startet beim kleinsten Wert, `diverging` nutzt den Center-Wert (Default: auto).
+- `--center` verschiebt den Nullpunkt bei divergierenden Skalen (default `0`).
+- `--log-scale` aktiviert eine logarithmische Betrachtung der Häufigkeiten.
 - Optional `--exclude` für zusätzliche Zeichenfilter sowie `--limit` zum Beschneiden langer Texte.
 - Output: `keyboard_heatmap_qwerty.png`, `keyboard_letter_counts.csv` (inkl. normierter Counts & Koordinaten) und `unmapped_characters.txt`.
+
+### Zwei Texte vergleichen (divergierende Heatmap)
+
+```pwsh
+python gadsby_heatmap.py --input "text_a.txt" --compare-with "text_b.txt" --output-dir output_compare --cmap coolwarm --scale-type diverging
+```
+
+- Ergebnis ist eine divergierende Heatmap mit farbiger Legende: Mittelwert = gleich häufig, linke Skala = Text A seltener, rechte Skala = Text A häufiger (relativ zu Text B).
+- Es werden zwei CSV-Dateien erzeugt (`keyboard_letter_counts.csv` für Text A und `keyboard_letter_counts_compare.csv` für Text B).
 
 ## Hinweise zur Bewertung
 
