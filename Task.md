@@ -1,8 +1,5 @@
 # Übungen Datenvisualisierung (WS 2025/26)
 
-V1.1: 2025-11-12  
-Änderungen/Anpassungen an Vorlesungsfolien in Gelb markiert
-
 ## 1) Überblick & Ziele
 Sie üben, Verzerrungen in Diagrammen systematisch zu erkennen und zu vermeiden – etwa durch den korrekten Umgang mit Lie-Factor, Data-Ink und dem bewussten Einsatz bzw. Verzicht auf „Chartjunk“. Auf der Basis von Wahrnehmungsgrundlagen, präattentiven Merkmalen und Gestaltprinzipien treffen Sie fundierte Designentscheidungen. Sie wählen Farben zielgerichtet aus (sequentielle, divergierende und bivariate Skalen) und achten dabei konsequent auf Barrierefreiheit und ausreichende Kontraste. Darüber hinaus gestalten und vergleichen Sie Darstellungen für Netzwerke, Hierarchien und Zeitreihen und setzen Interaktion stets aufgabengerecht ein. Begleitend planen Sie Mini-Evaluationen – von Hypothesen über Studiendesigns bis hin zu geeigneten Metriken – und berichten Ergebnisse klar und kompakt. Alle Abgaben sind reproduzierbar angelegt: Daten und Code werden nachvollziehbar organisiert und in eine professionelle Präsentationsform überführt.
 
