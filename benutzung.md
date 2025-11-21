@@ -18,6 +18,17 @@ Dieses Dokument fasst alle derzeit umgesetzten Einstellmöglichkeiten zusammen u
 - Jeder Export enthält automatisch eine horizontal platzierte Legende inkl. Colormap-Namen.
 - Dateien: `keyboard_heatmap_qwerty(.png)`, CSV (`keyboard_letter_counts*.csv`) sowie `unmapped_characters*.txt`.
 
+### Alternative Visualisierungen
+
+- Script: `alternative_visualizations.py`
+	- Argumente: `--input`, `--compare-input`, optionale Labels, `--limit`, `--output-dir` (Standard `output_alt_viz`).
+	- Nutzt denselben Analysepfad (`keyboard_heatmap.analyze_text`) und erzeugt derzeit vier Darstellungen ohne Keyboard-Layout:
+		1. **Sortiertes Balkendiagramm** der Buchstabenhäufigkeiten für Text A (`01_<label>_bar.png`).
+		2. **Gruppierte Balken** (Top 15 Zeichen) zum direkten Vergleich (`02_grouped_top15.png`).
+		3. **Divergierende Differenzbalken** (Text A – Text B) mit Null-Linie (`03_diverging_difference.png`).
+		4. **Kumulative Abdeckung**: Linienplot zeigt, wie viele Buchstabenanteile mit den häufigsten Zeichen erklärt werden (`04_cumulative_coverage.png`).
+- Alle Diagramme verwenden farbfehlsichtrobuste Paletten (ColorBrewer-inspirierte Grüntöne/Orangetöne) und beschriftete Achsen/Legenden gemäß Aufgabenstellung.
+
 ## Farbskalen & Vergleichbarkeit (Bezug zu `Task.md`)
 
 - **Sequentiell vs. Divergierend:** Alle Matplotlib-Skalen verfügbar → sequentielle (z. B. `cividis`) und divergierende (`coolwarm`, `seismic`).
