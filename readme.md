@@ -67,12 +67,16 @@ pip install -r requirements.txt
 ### Heatmap generieren
 
 ```pwsh
-python gadsby_heatmap.py --input "Gadsby_ Ernest Vincent Wright_1939.txt" --output-dir output --cmap cividis
+python gadsby_heatmap.py --input "Gadsby_ Ernest Vincent Wright_1939.txt" --output-dir output --cmap cividis --scale log
+# Vergleich zweier Texte (divergierende Skala empfohlen)
+python gadsby_heatmap.py --input "Gadsby_ Ernest Vincent Wright_1939.txt" --compare-input "Task.md" --output-dir output_compare --cmap coolwarm
 ```
 
 - `--cmap` akzeptiert jeden Matplotlib-Colormap-Namen oder die Presets `standard`, `nightly`, `fanzy`.
-- Optional `--exclude` für zusätzliche Zeichenfilter sowie `--limit` zum Beschneiden langer Texte.
-- Output: `keyboard_heatmap_qwerty.png`, `keyboard_letter_counts.csv` (inkl. normierter Counts & Koordinaten) und `unmapped_characters.txt`.
+- `--scale {linear,log}` schaltet lineare bzw. logarithmische Intensität (log mindert Ausreißer, nur Single-Text).
+- `--compare-input <DATEI>` erzeugt eine relative Häufigkeits-Heatmap (TwoSlopeNorm, Center = 0, Colorbar unter dem Bild).
+- Optional `--exclude` für zusätzliche Zeichenfilter sowie `--limit` zum Beschneiden langer Texte (wirkt auf beide Texte).
+- Output: Heatmap mit Farblegende, CSV für beide Texte (`keyboard_letter_counts*.csv`) und `unmapped_characters*.txt`.
 
 ## Hinweise zur Bewertung
 

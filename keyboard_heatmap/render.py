@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Tuple
+from typing import Dict, Tuple
 
+import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.colors import LogNorm, Normalize, PowerNorm, TwoSlopeNorm
 from PIL import Image
 
 from .analysis import KeyboardAnalysis
 from .gradients import get_colormap
 
+Coordinate = Tuple[int, int]
 _DEFAULT_BACKGROUND = Path(__file__).resolve().parents[1] / "patrick-wied.at" / "img" / "QWERTY.png"
 
 
@@ -27,12 +30,12 @@ def _build_kernel(sigma: float, truncate: float) -> np.ndarray:
     return kernel
 
 
-def _accumulate_heatmap(point_counts: dict[Tuple[int, int], int], shape: tuple[int, int], kernel: np.ndarray) -> np.ndarray:
+def _accumulate_heatmap(point_counts: Dict[Coordinate, float], shape: tuple[int, int], kernel: np.ndarray) -> np.ndarray:
     heatmap = np.zeros(shape, dtype=float)
     radius = kernel.shape[0] // 2
 
     for (x, y), count in point_counts.items():
-        if count <= 0:
+        if count == 0:
             continue
 
         xi = int(round(x))
@@ -55,6 +58,37 @@ def _accumulate_heatmap(point_counts: dict[Tuple[int, int], int], shape: tuple[i
     return heatmap
 
 
+def _build_norm(data: np.ndarray, scale: str, gamma: float, comparison: bool) -> Normalize:
+    if comparison:
+        abs_max = float(np.max(np.abs(data)))
+        if abs_max <= 0:
+            abs_max = 1.0
+        return TwoSlopeNorm(vcenter=0.0, vmin=-abs_max, vmax=abs_max)
+
+    vmax = float(np.max(data))
+    if vmax <= 0:
+        vmax = 1.0
+
+    if scale == "log":
+        positive = data[data > 0]
+        vmin = float(np.min(positive)) if positive.size else 1e-6
+        return LogNorm(vmin=vmin, vmax=vmax)
+
+    if gamma and gamma != 1.0:
+        gamma_value = 1.0 / gamma if gamma > 0 else 1.0
+        return PowerNorm(gamma=gamma_value, vmin=0.0, vmax=vmax)
+
+    return Normalize(vmin=0.0, vmax=vmax)
+
+
+def _default_label(gradient: str, scale: str, comparison: bool) -> str:
+    if comparison:
+        return f"{gradient} (relative freq diff)"
+    if scale == "log":
+        return f"{gradient} (log scale)"
+    return f"{gradient} (linear scale)"
+
+
 def render_keyboard_heatmap(
     analysis: KeyboardAnalysis,
     *,
@@ -65,8 +99,15 @@ def render_keyboard_heatmap(
     blur_truncate: float = 45.0,
     gamma: float = 1.6,
     opacity: float = 1.0,
+    scale: str = "linear",
+    comparison_points: Dict[Coordinate, float] | None = None,
+    legend: bool = True,
+    legend_label: str | None = None,
 ) -> None:
-    """Render a keyboard heatmap image using Matplotlib colormaps."""
+    """Render a keyboard heatmap image with optional comparison & legend."""
+
+    if comparison_points is not None and scale == "log":
+        raise ValueError("Log scaling is only supported for single-text heatmaps")
 
     output_path = Path(output_path)
     bg_path = Path(background_path) if background_path else _DEFAULT_BACKGROUND
@@ -77,24 +118,43 @@ def render_keyboard_heatmap(
     width, height = background.size
 
     kernel = _build_kernel(blur_sigma, blur_truncate)
-    heatmap = _accumulate_heatmap(dict(analysis.point_counts), (height, width), kernel)
+    source_points = comparison_points if comparison_points is not None else dict(analysis.point_counts)
+    heatmap = _accumulate_heatmap(source_points, (height, width), kernel)
 
-    max_density = float(heatmap.max())
-    if max_density <= 0:
+    if not np.any(np.abs(heatmap) > 0):
         background.save(output_path)
         return
 
-    norm_heat = heatmap / max_density
-    if gamma and gamma > 0:
-        norm_heat = np.power(norm_heat, 1.0 / gamma)
-
+    comparison_mode = comparison_points is not None
+    norm = _build_norm(heatmap, scale, gamma, comparison_mode)
     cmap = get_colormap(gradient)
-    rgba = cmap(norm_heat)
 
-    rgb = (rgba[..., :3] * 255).astype(np.uint8)
-    alpha = (norm_heat * 255 * opacity).clip(0, 255).astype(np.uint8)
-    overlay = np.dstack([rgb, alpha])
-    overlay_image = Image.fromarray(overlay, mode="RGBA")
+    display_data = heatmap.copy()
+    if scale == "log" and not comparison_mode:
+        display_data = np.where(display_data > 0, display_data, np.nan)
 
-    result = Image.alpha_composite(background, overlay_image)
-    result.save(output_path)
+    alpha_source = np.abs(heatmap) if comparison_mode else np.clip(heatmap, 0, None)
+    alpha_max = float(np.nanmax(alpha_source))
+    if alpha_max > 0:
+        alpha_map = np.clip(alpha_source / alpha_max, 0, 1) * opacity
+    else:
+        alpha_map = np.zeros_like(alpha_source)
+
+    fig_height = height / 100.0 + (0.6 if legend else 0.0)
+    fig, ax = plt.subplots(figsize=(width / 100.0, fig_height), dpi=100)
+    ax.imshow(background)
+    im = ax.imshow(display_data, cmap=cmap, norm=norm, alpha=alpha_map, interpolation="bilinear")
+    ax.axis("off")
+
+    if legend:
+        cbar = fig.colorbar(im, ax=ax, orientation="horizontal", fraction=0.05, pad=0.05)
+        cbar.set_label(legend_label or _default_label(gradient, scale, comparison_mode))
+        # remove numeric tick labels under the colorbar per user request
+        try:
+            cbar.ax.set_xticks([])
+        except Exception:
+            # fallback for vertical orientation
+            cbar.ax.set_yticks([])
+
+    fig.savefig(output_path, dpi=100, bbox_inches="tight", pad_inches=0.1)
+    plt.close(fig)
