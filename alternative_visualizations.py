@@ -11,6 +11,11 @@ from keyboard_heatmap import QWERTY_LAYOUT, analyze_text, load_text
 
 LETTERS: Tuple[str, ...] = tuple(chr(code) for code in range(ord("A"), ord("Z") + 1))
 LANGUAGE_COLORS = ("#1b9e77", "#d95f02")
+BOOK_ALIASES = {
+    "gadsby_ ernest vincent wright_1939.txt": "Gadsby",
+    "01_harry potter - the philosopher's stone.txt": "HPeng",
+    "01_harry potter und der stein der weisen.txt": "HPde",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -60,6 +65,13 @@ def compute_freq(counts: Dict[str, int], total: int) -> Dict[str, float]:
 def slugify(label: str) -> str:
     safe = label.strip().lower().replace(" ", "-")
     return "".join(ch for ch in safe if ch.isalnum() or ch == "-")
+
+
+def detect_book_label(path: Path) -> str:
+    key = path.name.lower()
+    if key in BOOK_ALIASES:
+        return BOOK_ALIASES[key]
+    return slugify(path.stem)
 
 
 def plot_single_bar(freq: Dict[str, float], label: str, output_path: Path) -> None:
@@ -190,27 +202,32 @@ def main() -> None:
     freq_a = compute_freq(counts_a, total_a)
     freq_b = compute_freq(counts_b, total_b)
 
-    plot_single_bar(freq_a, args.input_label, output_dir / f"01_{slugify(args.input_label)}_bar.png")
+    label_a = detect_book_label(path_a)
+    label_b = detect_book_label(path_b)
+    combo_label = f"{label_a}{label_b}"
+    base_name = f"alt_{combo_label}"
+
+    plot_single_bar(freq_a, args.input_label, output_dir / f"{base_name}_{label_a}_bar.png")
     plot_grouped_bars(
         freq_a,
         freq_b,
         args.input_label,
         args.compare_label,
-        output_dir / "02_grouped_top15.png",
+        output_dir / f"{base_name}_grouped.png",
     )
     plot_diverging_difference(
         freq_a,
         freq_b,
         args.input_label,
         args.compare_label,
-        output_dir / "03_diverging_difference.png",
+        output_dir / f"{base_name}_diff.png",
     )
     plot_cumulative_share(
         freq_a,
         freq_b,
         args.input_label,
         args.compare_label,
-        output_dir / "04_cumulative_coverage.png",
+        output_dir / f"{base_name}_cumulative.png",
     )
 
     print(f"Saved visualizations to {output_dir}")

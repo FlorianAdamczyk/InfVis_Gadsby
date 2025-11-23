@@ -11,6 +11,7 @@ Dieses Dokument fasst alle derzeit umgesetzten Einstellmöglichkeiten zusammen u
 - `--compare-input <DATEI>`: Zweiter Text für relative Häufigkeitsvergleiche (benötigt divergierende Palette, z. B. `coolwarm`).
 - `--exclude <ZEICHEN …>`: Zusätzliche Zeichen, die ignoriert werden sollen (Space wird immer ignoriert).
 - `--limit <N>`: Optionaler Ausschnitt beider Texte (auch für Vergleich angewandt).
+- Dateinamen folgen nun dem Schema `<methode>_<buchkombination>_<colormap>` (z. B. `single_Gadsby_standard`, `compare_HPengHPde_coolwarm`). CSV-/TXT-Dateien erhalten zusätzliche Suffixe (`_counts`, `_unmapped`).
 
 ## Rendering & Ausgabe
 
@@ -23,10 +24,10 @@ Dieses Dokument fasst alle derzeit umgesetzten Einstellmöglichkeiten zusammen u
 - Script: `alternative_visualizations.py`
 	- Argumente: `--input`, `--compare-input`, optionale Labels, `--limit`, `--output-dir` (Standard `output_alt_viz`).
 	- Nutzt denselben Analysepfad (`keyboard_heatmap.analyze_text`) und erzeugt derzeit vier Darstellungen ohne Keyboard-Layout:
-		1. **Sortiertes Balkendiagramm** der Buchstabenhäufigkeiten für Text A (`01_<label>_bar.png`).
-		2. **Gruppierte Balken** (Top 15 Zeichen) zum direkten Vergleich (`02_grouped_top15.png`).
-		3. **Divergierende Differenzbalken** (Text A – Text B) mit Null-Linie (`03_diverging_difference.png`).
-		4. **Kumulative Abdeckung**: Linienplot zeigt, wie viele Buchstabenanteile mit den häufigsten Zeichen erklärt werden (`04_cumulative_coverage.png`).
+		1. **Sortiertes Balkendiagramm** der Buchstabenhäufigkeiten für Text A (`alt_HPengHPde_HPeng_bar.png` u. Ä.).
+		2. **Gruppierte Balken** (Top 15 Zeichen) zum direkten Vergleich (`alt_HPengHPde_grouped.png`).
+		3. **Divergierende Differenzbalken** (Text A – Text B) mit Null-Linie (`alt_HPengHPde_diff.png`).
+		4. **Kumulative Abdeckung**: Linienplot zeigt, wie viele Buchstabenanteile mit den häufigsten Zeichen erklärt werden (`alt_HPengHPde_cumulative.png`).
 - Alle Diagramme verwenden farbfehlsichtrobuste Paletten (ColorBrewer-inspirierte Grüntöne/Orangetöne) und beschriftete Achsen/Legenden gemäß Aufgabenstellung.
 
 ## Farbskalen & Vergleichbarkeit (Bezug zu `Task.md`)

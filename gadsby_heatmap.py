@@ -12,6 +12,23 @@ from keyboard_heatmap import (
 )
 from keyboard_heatmap.text_counts import export_counts_to_csv
 
+BOOK_ALIASES = {
+    "gadsby_ ernest vincent wright_1939.txt": "Gadsby",
+    "01_harry potter - the philosopher's stone.txt": "HPeng",
+    "01_harry potter und der stein der weisen.txt": "HPde",
+}
+
+
+def slug_token(text: str) -> str:
+    safe = text.replace(" ", "_")
+    return "".join(ch for ch in safe if ch.isalnum() or ch in {"_", "-"})
+
+
+def detect_book_label(path: Path) -> str:
+    key = path.name.lower()
+    if key in BOOK_ALIASES:
+        return BOOK_ALIASES[key]
+    return slug_token(path.stem)
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Render a keyboard heatmap for a given text.")
@@ -56,7 +73,8 @@ def main() -> None:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    text = load_text(args.input)
+    primary_path = Path(args.input)
+    text = load_text(primary_path)
     if args.limit:
         text = text[: args.limit]
     input_chars = len(text)
@@ -74,10 +92,22 @@ def main() -> None:
         comparison_analysis = analyze_text(comparison_text, QWERTY_LAYOUT, excludes=args.exclude)
         comparison_points = compute_relative_difference_points(analysis, comparison_analysis)
 
-    image_name = "keyboard_heatmap_qwerty_compare.png" if comparison_points else "keyboard_heatmap_qwerty.png"
-    image_path = output_dir / image_name
-    csv_path = output_dir / "keyboard_letter_counts.csv"
-    unmapped_path = output_dir / "unmapped_characters.txt"
+    primary_label = detect_book_label(primary_path)
+    cmap_label = slug_token(args.cmap)
+    method = "compare" if comparison_points else "single"
+    if comparison_points and comparison_path:
+        comparison_label = detect_book_label(comparison_path)
+        combo_label = f"{primary_label}{comparison_label}"
+    else:
+        comparison_label = None
+        combo_label = primary_label
+
+    heatmap_base = f"{method}_{combo_label}_{cmap_label}"
+    image_path = output_dir / f"{heatmap_base}.png"
+
+    primary_base = f"{method}_{primary_label}_{cmap_label}"
+    csv_path = output_dir / f"{primary_base}_counts.csv"
+    unmapped_path = output_dir / f"{primary_base}_unmapped.txt"
 
     render_keyboard_heatmap(
         analysis,
@@ -89,10 +119,11 @@ def main() -> None:
     )
     export_counts_to_csv(csv_path, analysis)
 
-    if comparison_analysis:
-        comparison_csv = output_dir / "keyboard_letter_counts_compare.csv"
+    if comparison_analysis and comparison_label:
+        comparison_base = f"{method}_{comparison_label}_{cmap_label}"
+        comparison_csv = output_dir / f"{comparison_base}_counts.csv"
         export_counts_to_csv(comparison_csv, comparison_analysis)
-        cmp_unmapped = output_dir / "unmapped_characters_compare.txt"
+        cmp_unmapped = output_dir / f"{comparison_base}_unmapped.txt"
         if comparison_analysis.unmapped_counts:
             with cmp_unmapped.open("w", encoding="utf-8") as fh:
                 for char, count in comparison_analysis.unmapped_counts.most_common():
