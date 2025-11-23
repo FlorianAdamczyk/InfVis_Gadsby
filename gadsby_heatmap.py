@@ -105,9 +105,9 @@ def main() -> None:
     heatmap_base = f"{method}_{combo_label}_{cmap_label}"
     image_path = output_dir / f"{heatmap_base}.png"
 
-    primary_base = f"{method}_{primary_label}_{cmap_label}"
-    csv_path = output_dir / f"{primary_base}_counts.csv"
-    unmapped_path = output_dir / f"{primary_base}_unmapped.txt"
+    # CSV/TXT use compact, non-heatmap-specific names: counts_<method>_<label>.csv
+    csv_path = output_dir / f"counts_{method}_{primary_label}.csv"
+    unmapped_path = output_dir / f"unmapped_{method}_{primary_label}.txt"
 
     render_keyboard_heatmap(
         analysis,
@@ -120,10 +120,10 @@ def main() -> None:
     export_counts_to_csv(csv_path, analysis)
 
     if comparison_analysis and comparison_label:
-        comparison_base = f"{method}_{comparison_label}_{cmap_label}"
-        comparison_csv = output_dir / f"{comparison_base}_counts.csv"
+        # For comparison, per-text CSV/TXT also use compact names
+        comparison_csv = output_dir / f"counts_{method}_{comparison_label}.csv"
         export_counts_to_csv(comparison_csv, comparison_analysis)
-        cmp_unmapped = output_dir / f"{comparison_base}_unmapped.txt"
+        cmp_unmapped = output_dir / f"unmapped_{method}_{comparison_label}.txt"
         if comparison_analysis.unmapped_counts:
             with cmp_unmapped.open("w", encoding="utf-8") as fh:
                 for char, count in comparison_analysis.unmapped_counts.most_common():

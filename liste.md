@@ -1,0 +1,38 @@
+# funktionierende Colormaps
+
+- standard
+- nightly
+- fanzy
+- viridis
+- plasma
+- inferno
+- magma
+- cividis
+- binary
+- gray
+- bone
+- pink
+- spring
+- summer
+- autumn
+- winter
+- cool
+- hot
+- afmhot
+- gist_heat
+- copper
+- coolwarm
+- bwr
+- seismic
+- berlin
+- managua
+- vanimo
+- hsv
+- twilight
+- cubehelix
+- terrain
+- jet
+- turbo
+- brg
+- prism
+  
