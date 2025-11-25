@@ -81,12 +81,10 @@ def _build_norm(data: np.ndarray, scale: str, gamma: float, comparison: bool) ->
     return Normalize(vmin=0.0, vmax=vmax)
 
 
-def _default_label(gradient: str, scale: str, comparison: bool) -> str:
+def _default_label(gradient: str, comparison: bool) -> str:
     if comparison:
         return f"{gradient} (relative freq diff)"
-    if scale == "log":
-        return f"{gradient} (log scale)"
-    return f"{gradient} (linear scale)"
+    return gradient
 
 
 def render_keyboard_heatmap(
@@ -103,8 +101,12 @@ def render_keyboard_heatmap(
     comparison_points: Dict[Coordinate, float] | None = None,
     legend: bool = True,
     legend_label: str | None = None,
+    title: str | None = None,
 ) -> None:
-    """Render a keyboard heatmap image with optional comparison & legend."""
+    """Render a keyboard heatmap image with optional comparison & legend.
+
+    The optional title is placed above the keyboard layout in the saved image.
+    """
 
     if comparison_points is not None and scale == "log":
         raise ValueError("Log scaling is only supported for single-text heatmaps")
@@ -140,15 +142,18 @@ def render_keyboard_heatmap(
     else:
         alpha_map = np.zeros_like(alpha_source)
 
-    fig_height = height / 100.0 + (0.6 if legend else 0.0)
+    title_padding = 0.3 if title else 0.0
+    fig_height = height / 100.0 + (0.6 if legend else 0.0) + title_padding
     fig, ax = plt.subplots(figsize=(width / 100.0, fig_height), dpi=100)
     ax.imshow(background)
     im = ax.imshow(display_data, cmap=cmap, norm=norm, alpha=alpha_map, interpolation="bilinear")
     ax.axis("off")
+    if title:
+        ax.set_title(title, pad=10, fontsize=14, weight="bold")
 
     if legend:
         cbar = fig.colorbar(im, ax=ax, orientation="horizontal", fraction=0.05, pad=0.05)
-        cbar.set_label(legend_label or _default_label(gradient, scale, comparison_mode))
+        cbar.set_label(legend_label or _default_label(gradient, comparison_mode))
         # remove numeric tick labels under the colorbar per user request
         try:
             cbar.ax.set_xticks([])

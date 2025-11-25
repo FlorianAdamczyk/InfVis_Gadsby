@@ -18,6 +18,12 @@ BOOK_ALIASES = {
     "01_harry potter und der stein der weisen.txt": "HPde",
 }
 
+BOOK_TITLES = {
+    "gadsby_ ernest vincent wright_1939.txt": "Gadsby",
+    "01_harry potter - the philosopher's stone.txt": "Harry Potter 1 ENG",
+    "01_harry potter und der stein der weisen.txt": "Harry Potter 1 DE",
+}
+
 
 def slug_token(text: str) -> str:
     safe = text.replace(" ", "_")
@@ -29,6 +35,13 @@ def detect_book_label(path: Path) -> str:
     if key in BOOK_ALIASES:
         return BOOK_ALIASES[key]
     return slug_token(path.stem)
+
+
+def book_title(path: Path) -> str:
+    key = path.name.lower()
+    if key in BOOK_TITLES:
+        return BOOK_TITLES[key]
+    return path.stem.replace("_", " ").replace("-", " ").strip().title()
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Render a keyboard heatmap for a given text.")
@@ -93,14 +106,18 @@ def main() -> None:
         comparison_points = compute_relative_difference_points(analysis, comparison_analysis)
 
     primary_label = detect_book_label(primary_path)
+    primary_title = book_title(primary_path)
     cmap_label = slug_token(args.cmap)
     method = "compare" if comparison_points else "single"
     if comparison_points and comparison_path:
         comparison_label = detect_book_label(comparison_path)
+        comparison_title = book_title(comparison_path)
         combo_label = f"{primary_label}{comparison_label}"
+        image_title = f"{primary_title} vs. {comparison_title}"
     else:
         comparison_label = None
         combo_label = primary_label
+        image_title = primary_title
 
     heatmap_base = f"{method}_{combo_label}_{cmap_label}"
     image_path = output_dir / f"{heatmap_base}.png"
@@ -116,6 +133,7 @@ def main() -> None:
         scale=args.scale,
         comparison_points=comparison_points,
         legend=True,
+        title=image_title,
     )
     export_counts_to_csv(csv_path, analysis)
 
