@@ -37,16 +37,39 @@ def _build_custom_colormap(name: str) -> LinearSegmentedColormap:
     return LinearSegmentedColormap.from_list(name, stops)
 
 
+_REVERSE_SUFFIXES = ("-inverse", "_inverse", "-reverse", "_reverse")
+
+
+def _normalize_colormap_name(name: str) -> tuple[str, bool]:
+    key = name.strip().lower()
+    reverse = False
+    for suffix in _REVERSE_SUFFIXES:
+        if key.endswith(suffix):
+            reverse = True
+            key = key[: -len(suffix)]
+            break
+    key = key.strip("-_")
+    return key, reverse
+
+
 def available_presets() -> list[str]:
     return sorted(_CUSTOM_GRADIENT_DEFS.keys())
 
 
 def get_colormap(name: str) -> Colormap:
-    key = name.lower()
+    key, reverse = _normalize_colormap_name(name)
+    if not key:
+        raise ValueError(
+            f"Unknown colormap '{name}'. Use a Matplotlib colormap or one of: {', '.join(available_presets())}"
+        )
     if key in _CUSTOM_GRADIENT_DEFS:
-        return _build_custom_colormap(key)
-    if key in mpl.colormaps:
-        return mpl.colormaps[key]
-    raise ValueError(
-        f"Unknown colormap '{name}'. Use a Matplotlib colormap or one of: {', '.join(available_presets())}"
-    )
+        cmap = _build_custom_colormap(key)
+    elif key in mpl.colormaps:
+        cmap = mpl.colormaps[key]
+    else:
+        raise ValueError(
+            f"Unknown colormap '{name}'. Use a Matplotlib colormap or one of: {', '.join(available_presets())}"
+        )
+    if reverse:
+        cmap = cmap.reversed()
+    return cmap

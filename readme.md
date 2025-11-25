@@ -73,6 +73,7 @@ python gadsby_heatmap.py --input "Gadsby_ Ernest Vincent Wright_1939.txt" --comp
 ```
 
 - `--cmap` akzeptiert jeden Matplotlib-Colormap-Namen oder die Presets `standard`, `nightly`, `fanzy`.
+  Du kannst einen Namen mit `-inverse` oder `-reverse` (z. B. `inferno-inverse`) abschließen, um die Palette umzudrehen.
 - `--scale {linear,log}` schaltet lineare bzw. logarithmische Intensität (log mindert Ausreißer, nur Single-Text).
 - `--compare-input <DATEI>` erzeugt eine relative Häufigkeits-Heatmap (TwoSlopeNorm, Center = 0, Colorbar unter dem Bild).
 - Optional `--exclude` für zusätzliche Zeichenfilter sowie `--limit` zum Beschneiden langer Texte (wirkt auf beide Texte).
